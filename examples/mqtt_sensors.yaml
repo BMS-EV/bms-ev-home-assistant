@@ -1,0 +1,49 @@
+# Home Assistant configuration.yaml
+# Manual MQTT sensors for BMS-EV controller
+# Replace {device_uid} with your controller ID
+
+mqtt:
+  sensor:
+    - name: "BMS-EV Battery SOC"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.soc }}"
+      unit_of_measurement: "%"
+      device_class: battery
+    - name: "BMS-EV Battery Voltage"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.voltage }}"
+      unit_of_measurement: "V"
+      device_class: voltage
+    - name: "BMS-EV Battery Current"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.current }}"
+      unit_of_measurement: "A"
+      device_class: current
+    - name: "BMS-EV Battery Power"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.power }}"
+      unit_of_measurement: "W"
+      device_class: power
+    - name: "BMS-EV Min Cell Voltage"
+      state_topic: "bms/{device_uid}/balancing_data"
+      value_template: "{{ value_json.min_cell_v }}"
+      unit_of_measurement: "V"
+    - name: "BMS-EV Max Cell Voltage"
+      state_topic: "bms/{device_uid}/balancing_data"
+      value_template: "{{ value_json.max_cell_v }}"
+      unit_of_measurement: "V"
+    - name: "BMS-EV Cell Delta"
+      state_topic: "bms/{device_uid}/balancing_data"
+      value_template: "{{ (value_json.max_cell_v - value_json.min_cell_v) * 1000 }}"
+      unit_of_measurement: "mV"
+    - name: "BMS-EV Battery Temperature"
+      state_topic: "bms/{device_uid}/balancing_data"
+      value_template: "{{ value_json.max_temp }}"
+      unit_of_measurement: "°C"
+      device_class: temperature
+  binary_sensor:
+    - name: "BMS-EV Contactor Closed"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.contactor }}"
+      payload_on: "true"
+      payload_off: "false"
