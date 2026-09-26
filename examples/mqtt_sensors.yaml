@@ -1,49 +1,135 @@
-# Home Assistant configuration.yaml
-# Manual MQTT sensors for BMS-EV controller
-# Replace {device_uid} with your controller ID
+# Manual MQTT sensors for a BMS-EV controller
+#
+# You almost certainly do NOT need this file.
+#
+# Firmware 16.5.0 and newer publishes native Home Assistant auto-discovery, so the
+# controller appears under Settings -> Devices & Services -> MQTT on its own, with
+# every entity already configured. See the README.
+#
+# Hand-written sensors are only useful when:
+#   - the controller and Home Assistant sit on different brokers with a filtered bridge
+#   - discovery is switched off in your Home Assistant MQTT settings
+#   - the controller runs firmware older than 16.5.0
+#
+# Field names below match the firmware's status payload. Replace {device_uid} with
+# your controller ID (shown in its web interface and in your account panel).
 
 mqtt:
   sensor:
-    - name: "BMS-EV Battery SOC"
+    - name: "BMS-EV State of Health"
       state_topic: "bms/{device_uid}/status"
-      value_template: "{{ value_json.soc }}"
+      value_template: "{{ value_json.state_of_health }}"
       unit_of_measurement: "%"
       device_class: battery
+      state_class: measurement
+      unique_id: bmsev_soh
+
     - name: "BMS-EV Battery Voltage"
       state_topic: "bms/{device_uid}/status"
-      value_template: "{{ value_json.voltage }}"
+      value_template: "{{ value_json.battery_voltage }}"
       unit_of_measurement: "V"
       device_class: voltage
+      state_class: measurement
+      unique_id: bmsev_voltage
+
     - name: "BMS-EV Battery Current"
       state_topic: "bms/{device_uid}/status"
-      value_template: "{{ value_json.current }}"
+      value_template: "{{ value_json.battery_current }}"
       unit_of_measurement: "A"
       device_class: current
+      state_class: measurement
+      unique_id: bmsev_current
+
     - name: "BMS-EV Battery Power"
       state_topic: "bms/{device_uid}/status"
-      value_template: "{{ value_json.power }}"
+      value_template: "{{ value_json.stat_batt_power }}"
       unit_of_measurement: "W"
       device_class: power
-    - name: "BMS-EV Min Cell Voltage"
-      state_topic: "bms/{device_uid}/balancing_data"
-      value_template: "{{ value_json.min_cell_v }}"
+      state_class: measurement
+      unique_id: bmsev_power
+
+    - name: "BMS-EV Cell Min Voltage"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.cell_min_voltage }}"
       unit_of_measurement: "V"
-    - name: "BMS-EV Max Cell Voltage"
-      state_topic: "bms/{device_uid}/balancing_data"
-      value_template: "{{ value_json.max_cell_v }}"
+      device_class: voltage
+      state_class: measurement
+      unique_id: bmsev_cell_min
+
+    - name: "BMS-EV Cell Max Voltage"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.cell_max_voltage }}"
       unit_of_measurement: "V"
-    - name: "BMS-EV Cell Delta"
-      state_topic: "bms/{device_uid}/balancing_data"
-      value_template: "{{ (value_json.max_cell_v - value_json.min_cell_v) * 1000 }}"
-      unit_of_measurement: "mV"
-    - name: "BMS-EV Battery Temperature"
-      state_topic: "bms/{device_uid}/balancing_data"
-      value_template: "{{ value_json.max_temp }}"
+      device_class: voltage
+      state_class: measurement
+      unique_id: bmsev_cell_max
+
+    # The number worth watching: a widening spread means one cell is ageing
+    # faster than the rest.
+    - name: "BMS-EV Cell Voltage Delta"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.cell_voltage_delta }}"
+      unit_of_measurement: "V"
+      device_class: voltage
+      state_class: measurement
+      unique_id: bmsev_cell_delta
+
+    - name: "BMS-EV Temperature Min"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.temperature_min }}"
       unit_of_measurement: "°C"
       device_class: temperature
-  binary_sensor:
-    - name: "BMS-EV Contactor Closed"
+      state_class: measurement
+      unique_id: bmsev_temp_min
+
+    - name: "BMS-EV Temperature Max"
       state_topic: "bms/{device_uid}/status"
-      value_template: "{{ value_json.contactor }}"
-      payload_on: "true"
-      payload_off: "false"
+      value_template: "{{ value_json.temperature_max }}"
+      unit_of_measurement: "°C"
+      device_class: temperature
+      state_class: measurement
+      unique_id: bmsev_temp_max
+
+    - name: "BMS-EV Max Charge Power"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.max_charge_power }}"
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      unique_id: bmsev_max_charge
+
+    - name: "BMS-EV Max Discharge Power"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.max_discharge_power }}"
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+      unique_id: bmsev_max_discharge
+
+    # Cumulative counters - these can feed the Energy dashboard.
+    - name: "BMS-EV Charged Energy"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.charged_energy }}"
+      unit_of_measurement: "Wh"
+      device_class: energy
+      state_class: total_increasing
+      unique_id: bmsev_charged
+
+    - name: "BMS-EV Discharged Energy"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.discharged_energy }}"
+      unit_of_measurement: "Wh"
+      device_class: energy
+      state_class: total_increasing
+      unique_id: bmsev_discharged
+
+    - name: "BMS-EV BMS Status"
+      state_topic: "bms/{device_uid}/status"
+      value_template: "{{ value_json.bms_status }}"
+      unique_id: bmsev_bms_status
+
+    - name: "BMS-EV Balancing Active Cells"
+      state_topic: "bms/{device_uid}/balancing_data"
+      value_template: "{{ value_json.balancing_active_cells }}"
+      state_class: measurement
+      unique_id: bmsev_balancing_cells
