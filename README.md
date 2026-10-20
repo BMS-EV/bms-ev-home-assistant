@@ -184,5 +184,3 @@ a separate broker, a filtered bridge, or a controller on firmware older than 16.
 - [bms-ev-mqtt-examples](https://github.com/BMS-EV/bms-ev-mqtt-examples) — MQTT topics, Node-RED, Grafana, InfluxDB
 - [bms-ev-docs](https://github.com/BMS-EV/bms-ev-docs) — compatibility dataset: 70 battery profiles × 56 inverters
 - [docs.bms-ev.com](https://docs.bms-ev.com/) — full technical documentation
-
-Built on [dalathegreat/Battery-Emulator](https://github.com/dalathegreat/Battery-Emulator).
